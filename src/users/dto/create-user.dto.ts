@@ -1,4 +1,3 @@
-// src/users/dto/create-user.dto.ts
 import {
   IsEmail,
   IsNotEmpty,
@@ -36,6 +35,14 @@ export class RegisterDto {
 
   @IsEnum(Sexe)
   sexe!: Sexe;
+
+  @IsString()
+  @IsNotEmpty()
+  ville!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  niveauEtude!: string;
 
   @IsEnum(Role)
   @IsOptional()

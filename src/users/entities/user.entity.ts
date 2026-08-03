@@ -46,6 +46,12 @@ export class User {
   role!: Role;
 
   @Column({ default: true })
+  ville!: string;
+
+  @Column({ default: true })
+  niveauEtude!: string;
+
+  @Column({ default: true })
   isActive!: boolean;
 
   @ManyToOne(() => Cohorte, (cohorte) => cohorte.users, {

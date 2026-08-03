@@ -16,6 +16,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/guards/roles.guard';
 import { Role } from 'src/common/enums';
+import { UpdateAuthDto } from 'src/auth/dto/update-auth.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -52,7 +53,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateDto: any) {
+  async update(@Param('id') id: string, @Body() updateDto: UpdateAuthDto) {
     return await this.usersService.update(id, updateDto);
   }
 
