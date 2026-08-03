@@ -15,6 +15,8 @@ const emptyForm: RegisterPayload = {
   age: 18,
   numero: '',
   sexe: 'M',
+  niveauEtude: '',
+  ville: '',
 };
 
 export default function RegisterPage() {
@@ -31,7 +33,7 @@ export default function RegisterPage() {
       await authService.register(form);
       navigate('/login');
     } catch (err) {
-      setError(getErrorMessage(err, "Impossible de créer le compte."));
+      setError(getErrorMessage(err, 'Impossible de créer le compte.'));
     } finally {
       setLoading(false);
     }
@@ -40,7 +42,10 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-white p-4">
       <div className="w-full max-w-lg rounded-2xl border border-ink/10 p-8 shadow-card">
-        <Link to="/accueil" className="mb-4 inline-block text-xs font-semibold text-ink/50 hover:text-brand">
+        <Link
+          to="/accueil"
+          className="mb-4 inline-block text-xs font-semibold text-ink/50 hover:text-brand"
+        >
           ← Voir les formations sans se connecter
         </Link>
 
@@ -51,8 +56,12 @@ export default function RegisterPage() {
           <p className="text-sm font-bold text-ink">Orange Digital Center</p>
         </div>
 
-        <h1 className="text-2xl font-bold text-ink">Créer un compte apprenant</h1>
-        <p className="mt-1 text-sm text-ink/60">Rejoignez l'ODC en quelques secondes.</p>
+        <h1 className="text-2xl font-bold text-ink">
+          Créer un compte apprenant
+        </h1>
+        <p className="mt-1 text-sm text-ink/60">
+          Rejoignez l'ODC en quelques secondes.
+        </p>
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
@@ -89,7 +98,9 @@ export default function RegisterPage() {
               type="number"
               min={1}
               value={form.age}
-              onChange={(e) => setForm({ ...form, age: Number(e.target.value) })}
+              onChange={(e) =>
+                setForm({ ...form, age: Number(e.target.value) })
+              }
               required
             />
             <div className="col-span-2">
@@ -112,7 +123,9 @@ export default function RegisterPage() {
           </Select>
 
           {error && (
-            <p className="rounded-lg border border-ink px-3 py-2 text-sm text-ink">{error}</p>
+            <p className="rounded-lg border border-ink px-3 py-2 text-sm text-ink">
+              {error}
+            </p>
           )}
 
           <Button type="submit" loading={loading} className="mt-2 w-full">
@@ -122,7 +135,10 @@ export default function RegisterPage() {
 
         <p className="mt-4 text-center text-sm text-ink/60">
           Déjà inscrit ?{' '}
-          <Link to="/login" className="font-semibold text-brand hover:underline">
+          <Link
+            to="/login"
+            className="font-semibold text-brand hover:underline"
+          >
             Se connecter
           </Link>
         </p>

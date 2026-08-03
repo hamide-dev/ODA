@@ -1,9 +1,13 @@
 import apiClient from './apiClient';
 import { normalizeList } from './normalizeList';
-import { AppUser, RegisterPayload, UpdateProfilePayload, UpdateUserPayload } from '@/types/user.types';
+import {
+  AppUser,
+  RegisterPayload,
+  UpdateProfilePayload,
+  UpdateUserPayload,
+} from '@/types/user.types';
 
 export const usersService = {
-  // --- Espace apprenant (self) ---
   getProfile: async (): Promise<AppUser> => {
     const { data } = await apiClient.get<AppUser>('/users/profile');
     return data;
@@ -14,13 +18,13 @@ export const usersService = {
     return data;
   },
 
-  // POST (et non PATCH) — rattache automatiquement l'apprenant à la cohorte de la formation.
   selectFormation: async (formationId: string): Promise<AppUser> => {
-    const { data } = await apiClient.post<AppUser>('/users/select-formation', { formationId });
+    const { data } = await apiClient.post<AppUser>('/users/select-formation', {
+      formationId,
+    });
     return data;
   },
 
-  // --- Administration (ADMIN uniquement) ---
   getAll: async (search?: string): Promise<AppUser[]> => {
     const { data } = await apiClient.get('/users', {
       params: search ? { search } : undefined,

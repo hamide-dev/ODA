@@ -32,6 +32,8 @@ export interface RegisterPayload {
   age: number;
   numero: string;
   sexe: Sexe;
+  niveauEtude: string;
+  ville: string;
 }
 
 export interface LoginPayload {
@@ -62,4 +64,6 @@ export interface UpdateUserPayload {
   cohorteId?: string;
   formationId?: string;
   statut?: string;
+  niveauEtude?: string;
+  ville?: string;
 }
