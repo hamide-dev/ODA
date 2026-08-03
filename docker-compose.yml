@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # --- Service Backend (NestJS) ---
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs_api
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      PORT: 3000
+      DATABASE_HOST: postgres_db
+      DATABASE_PORT: 5432
+      DATABASE_USER: nest_user
+      DATABASE_PASSWORD: nest_password
+      DATABASE_NAME: nest_db
+      JWT_SECRET: super_secret_key
+    depends_on:
+      - postgres_db
+
+  # --- Service Base de données (PostgreSQL) ---
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: nest_user
+      POSTGRES_PASSWORD: nest_password
+      POSTGRES_DB: nest_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

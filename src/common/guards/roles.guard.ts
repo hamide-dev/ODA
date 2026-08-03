@@ -3,10 +3,11 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  SetMetadata,
 } from '@nestjs/common';
-import { SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '../enums';
+
 export const ROLES_KEY = 'roles';
 export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
 
@@ -19,16 +20,26 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+
     if (!requiredRoles) {
       return true;
     }
+
     const { user } = context.switchToHttp().getRequest();
+
+    if (!user || !user.role) {
+      throw new ForbiddenException(
+        'Accès refusé : utilisateur non authentifié ou rôle indéfini',
+      );
+    }
+
     const hasRole = requiredRoles.some((role) => user.role === role);
     if (!hasRole) {
       throw new ForbiddenException(
         "Accès refusé : vous n'avez pas les droits nécessaires",
       );
     }
+
     return true;
   }
 }

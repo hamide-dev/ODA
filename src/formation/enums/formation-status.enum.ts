@@ -1,0 +1,7 @@
+export enum FormationStatus {
+  BROUILLON = 'BROUILLON',
+  OUVERTE = 'OUVERTE',
+  EN_COURS = 'EN_COURS',
+  TERMINEE = 'TERMINEE',
+  ARCHIVEE = 'ARCHIVEE',
+}

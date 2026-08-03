@@ -28,7 +28,7 @@ export class RegisterAdminDto {
   @IsNotEmpty({ message: 'Le mot de passe est requis' })
   password!: string;
 
-  @IsEnum(Role, { message: 'Le rôle doit être ADMIN ou RESPONSABLE' })
+  @IsEnum(Role)
   @IsOptional()
   role?: Role;
 }

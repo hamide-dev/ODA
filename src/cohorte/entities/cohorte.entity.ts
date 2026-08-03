@@ -2,35 +2,26 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Formation } from 'src/formation/entities/formation.entity';
-import { Apprenant } from '../../apprenants/entities/apprenant.entity';
+import { Formation } from '../../formation/entities/formation.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('cohortes')
 export class Cohorte {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ unique: true })
   nom!: string;
 
-  @Column({ type: 'date', nullable: true })
-  dateDebut!: Date;
+  @OneToMany(() => Formation, (formation) => formation.cohorte)
+  formations!: Formation[];
 
-  @Column({ type: 'date', nullable: true })
-  dateFin!: Date;
-
-  @ManyToOne(() => Formation, (formation) => formation.cohortes, {
-    onDelete: 'CASCADE',
-  })
-  formation!: Formation;
-
-  @OneToMany(() => Apprenant, (apprenant) => apprenant.cohorte)
-  apprenants!: Apprenant[];
+  @OneToMany(() => User, (user) => user.cohorte)
+  users!: User[];
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -2,12 +2,15 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  ManyToOne,
   OneToMany,
+  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Cohorte } from 'src/cohorte/entities/cohorte.entity';
-import { Apprenant } from '../../apprenants/entities/apprenant.entity';
+import { Cohorte } from '../../cohorte/entities/cohorte.entity';
+import { User } from '../../users/entities/user.entity';
+import { FormationStatus } from '../enums/formation-status.enum';
 
 @Entity('formations')
 export class Formation {
@@ -17,14 +20,25 @@ export class Formation {
   @Column({ unique: true })
   nom!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column('text')
   description!: string;
 
-  @OneToMany(() => Cohorte, (cohorte) => cohorte.formation)
-  cohortes!: Cohorte[];
+  @Column({
+    type: 'enum',
+    enum: FormationStatus,
+    default: FormationStatus.BROUILLON,
+  })
+  statut!: FormationStatus;
 
-  @OneToMany(() => Apprenant, (apprenant) => apprenant.formation)
-  apprenants!: Apprenant[];
+  @ManyToOne(() => Cohorte, (cohorte) => cohorte.formations, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'cohorteId' })
+  cohorte!: Cohorte;
+
+  @OneToMany(() => User, (user) => user.formation)
+  users!: User[];
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -1,34 +1,35 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { FormationModule } from './formation/formation.module';
 import { CohorteModule } from './cohorte/cohorte.module';
-import { ApprenantsModule } from './apprenants/apprenants.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { User } from './users/entities/user.entity';
 import { Cohorte } from './cohorte/entities/cohorte.entity';
 import { Formation } from './formation/entities/formation.entity';
-import { Apprenant } from './apprenants/entities/apprenant.entity';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
+      host: process.env.DB_HOST,
       port: 5432,
-      username: 'postgres',
-      password: 'hamide',
-      database: 'odc_apprenants_db',
-      entities: [User, Cohorte, Formation, Apprenant],
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [User, Cohorte, Formation],
       synchronize: true,
     }),
     AuthModule,
     UsersModule,
     FormationModule,
     CohorteModule,
-    ApprenantsModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}

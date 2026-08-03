@@ -1,84 +1,128 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Formation } from '../formation/entities/formation.entity';
+import { SelectFormationDto } from 'src/formation/dto/select-formation';
+import { FormationStatus } from '../formation/enums/formation-status.enum';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Formation)
+    private readonly formationRepository: Repository<Formation>,
   ) {}
 
-  async create(userData: Partial<User>): Promise<User> {
-    const user = this.userRepository.create(userData);
+  async create(createUserDto: any): Promise<User> {
+    const user = this.userRepository.create(createUserDto as Partial<User>);
     return await this.userRepository.save(user);
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+  async findOne(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: {
+        formation: true,
+        cohorte: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+    return user;
+  }
+
+  async getProfile(userId: string): Promise<User> {
+    return this.findOne(userId);
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return await this.userRepository.findOne({ where: { email } });
-  }
-
-  async findByEmailWithPassword(email: string): Promise<User | null> {
     return await this.userRepository.findOne({
       where: { email },
-      select: {
-        id: true,
-        nom: true,
-        prenom: true,
-        email: true,
-        password: true,
-        role: true,
+      relations: {
+        formation: true,
+        cohorte: true,
       },
     });
   }
 
-  async findOne(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user)
-      throw new NotFoundException(`Utilisateur avec l'ID "${id}" non trouvé`);
-    return user;
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .leftJoinAndSelect('user.cohorte', 'cohorte')
+      .leftJoinAndSelect('user.formation', 'formation')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
-  async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<Omit<User, 'password'>> {
+  async selectFormation(
+    userId: string,
+    selectFormationDto: SelectFormationDto,
+  ): Promise<User> {
+    const { formationId } = selectFormationDto;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+
+    const formation = await this.formationRepository.findOne({
+      where: { id: formationId },
+      relations: {
+        cohorte: true,
+      },
+    });
+
+    if (!formation) {
+      throw new NotFoundException('Formation introuvable');
+    }
+
+    if (formation.statut !== FormationStatus.OUVERTE) {
+      throw new BadRequestException(
+        `Impossible de postuler : cette formation est actuellement "${formation.statut}".`,
+      );
+    }
+
+    user.formation = formation;
+    user.cohorte = formation.cohorte;
+
+    return await this.userRepository.save(user);
+  }
+
+  async findAllApprenants(search?: string): Promise<User[]> {
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.cohorte', 'cohorte')
+      .leftJoinAndSelect('user.formation', 'formation');
+
+    if (search) {
+      query.where(
+        'user.nom ILIKE :search OR user.prenom ILIKE :search OR user.email ILIKE :search',
+        { search: `%${search}%` },
+      );
+    }
+
+    return await query.getMany();
+  }
+
+  async update(id: string, updateDto: any): Promise<User> {
     const user = await this.findOne(id);
-
-    if (updateUserDto.email && updateUserDto.email !== user.email) {
-      const existingEmail = await this.findByEmail(updateUserDto.email);
-      if (existingEmail) {
-        throw new ConflictException(
-          'Cet email est déjà utilisé par un autre utilisateur',
-        );
-      }
-    }
-
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
-    }
-
-    Object.assign(user, updateUserDto);
-    const updatedUser = await this.userRepository.save(user);
-
-    const { password, ...result } = updatedUser;
-    return result;
+    Object.assign(user, updateDto);
+    return await this.userRepository.save(user);
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     await this.userRepository.remove(user);
-    return { message: `Utilisateur avec l'ID "${id}" supprimé avec succès` };
   }
 }

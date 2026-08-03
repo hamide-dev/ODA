@@ -1,26 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Formation } from './entities/formation.entity';
+import { ChangeFormationStatusDto } from './dto/change-status.dto';
 import { CreateFormationDto } from './dto/create-formation.dto';
-import { UpdateFormationDto } from './dto/update-formation.dto';
 
 @Injectable()
 export class FormationService {
-  create(createFormationDto: CreateFormationDto) {
-    return 'This action adds a new formation';
+  constructor(
+    @InjectRepository(Formation)
+    private readonly formationRepository: Repository<Formation>,
+  ) {}
+
+  async create(dto: CreateFormationDto): Promise<Formation> {
+    const formation = this.formationRepository.create(dto);
+    return await this.formationRepository.save(formation);
   }
 
-  findAll() {
-    return `This action returns all formation`;
+  async findAll(): Promise<Formation[]> {
+    return await this.formationRepository.find({
+      relations: { cohorte: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} formation`;
+  async findOne(id: string): Promise<Formation> {
+    const formation = await this.formationRepository.findOne({
+      where: { id },
+      relations: { cohorte: true },
+    });
+    if (!formation) throw new NotFoundException('Formation introuvable');
+    return formation;
   }
 
-  update(id: number, updateFormationDto: UpdateFormationDto) {
-    return `This action updates a #${id} formation`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} formation`;
+  async updateStatus(
+    id: string,
+    dto: ChangeFormationStatusDto,
+  ): Promise<Formation> {
+    const formation = await this.findOne(id);
+    formation.statut = dto.statut;
+    return await this.formationRepository.save(formation);
   }
 }
